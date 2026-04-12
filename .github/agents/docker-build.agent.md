@@ -73,13 +73,13 @@ docker compose logs nanobot-gateway --tail=30
 
 ### 4. Smoke test via CLI
 ```bash
+# Version check (ENTRYPOINT is 'nanobot' — pass subcommands directly)
+docker compose run --rm nanobot-cli --version
+
 # Status check
-docker compose run --rm nanobot-cli nanobot status
+docker compose run --rm nanobot-cli status
 
-# Version check
-docker compose run --rm --entrypoint "" nanobot-cli nanobot --version
-
-# Interactive shell
+# Interactive shell (override entrypoint)
 docker compose run --rm --entrypoint bash nanobot-cli
 ```
 

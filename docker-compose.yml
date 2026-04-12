@@ -4,6 +4,7 @@ x-common-config: &common-config
     dockerfile: Dockerfile
   volumes:
     - ~/.nanobot:/home/nanobot/.nanobot
+  user: "0:0"
   cap_drop:
     - ALL
   cap_add:
@@ -16,7 +17,7 @@ services:
   nanobot-gateway:
     container_name: nanobot-gateway
     <<: *common-config
-    command: ["gateway"]
+    command: ["serve", "--host", "0.0.0.0", "--port", "18790"]
     restart: unless-stopped
     ports:
       - 18790:18790
