@@ -17,7 +17,9 @@ services:
   nanobot-gateway:
     container_name: nanobot-gateway
     <<: *common-config
-    command: ["serve", "--host", "0.0.0.0", "--port", "18790"]
+    # supervisord runs both: nanobot gateway (Telegram) + nanobot serve (HTTP API for OpenSpace)
+    entrypoint: ["/usr/bin/supervisord"]
+    command: ["-c", "/etc/supervisor/conf.d/nanobot.conf"]
     restart: unless-stopped
     ports:
       - 18790:18790
@@ -33,6 +35,10 @@ services:
   nanobot-api:
     container_name: nanobot-api
     <<: *common-config
+    # Standalone serve container (superseded by supervisord in nanobot-gateway).
+    # Start explicitly with: docker compose --profile api up -d nanobot-api
+    profiles:
+      - api
     command:
       ["serve", "--host", "0.0.0.0", "-w", "/home/nanobot/.nanobot/api-workspace"]
     restart: unless-stopped
