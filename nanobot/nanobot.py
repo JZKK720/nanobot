@@ -128,6 +128,13 @@ def _make_provider(config: Any) -> Any:
     spec = find_by_name(provider_name) if provider_name else None
     backend = spec.backend if spec else "openai_compat"
 
+    if provider_name is None and p is None:
+        raise ValueError(
+            f"No provider found for model '{model}'. "
+            "For local models (Ollama/vLLM), set providers.ollama.apiBase or providers.vllm.apiBase "
+            "in config.json, or set agents.defaults.provider to the provider name explicitly."
+        )
+
     if backend == "azure_openai":
         if not p or not p.api_key or not p.api_base:
             raise ValueError("Azure OpenAI requires api_key and api_base in config.")

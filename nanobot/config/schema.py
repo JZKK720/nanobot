@@ -274,14 +274,19 @@ class Config(BaseSettings):
         # provider-specific keywords (for example plain "llama3.2" on Ollama).
         # Prefer providers whose detect_by_base_keyword matches the configured api_base
         # (e.g. Ollama's "11434" in "http://localhost:11434") over plain registry order.
+        # A local provider with a spec default_api_base is usable even when the user
+        # did not set an explicit api_base (e.g. Ollama at its default port).
         local_fallback: tuple[ProviderConfig, str] | None = None
         for spec in PROVIDERS:
             if not spec.is_local:
                 continue
             p = getattr(self.providers, spec.name, None)
-            if not (p and p.api_base):
+            if not p:
                 continue
-            if spec.detect_by_base_keyword and spec.detect_by_base_keyword in p.api_base:
+            effective_base = p.api_base or spec.default_api_base
+            if not effective_base:
+                continue
+            if spec.detect_by_base_keyword and spec.detect_by_base_keyword in effective_base:
                 return p, spec.name
             if local_fallback is None:
                 local_fallback = (p, spec.name)
