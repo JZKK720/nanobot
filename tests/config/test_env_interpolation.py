@@ -47,6 +47,19 @@ class TestResolveEnvVars:
         with pytest.raises(ValueError, match="DOES_NOT_EXIST"):
             _resolve_env_vars("${DOES_NOT_EXIST}")
 
+    def test_default_used_when_var_missing(self):
+        result = _resolve_env_vars("${MISSING_VAR:-http://localhost:11434}/v1")
+        assert result == "http://localhost:11434/v1"
+
+    def test_env_overrides_default(self, monkeypatch):
+        monkeypatch.setenv("OLLAMA_HOST", "http://host.docker.internal:11434")
+        result = _resolve_env_vars("${OLLAMA_HOST:-http://localhost:11434}/v1")
+        assert result == "http://host.docker.internal:11434/v1"
+
+    def test_empty_default(self):
+        result = _resolve_env_vars("prefix-${MISSING:-}-suffix")
+        assert result == "prefix--suffix"
+
 
 class TestResolveConfig:
     def test_resolves_env_vars_in_config(self, tmp_path, monkeypatch):

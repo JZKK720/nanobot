@@ -4,6 +4,13 @@ x-common-config: &common-config
     dockerfile: Dockerfile
   volumes:
     - ~/.nanobot:/home/nanobot/.nanobot
+  environment:
+    # Make the Docker host reachable as ${OLLAMA_HOST} inside the container.
+    # Override in your shell to point at a different Ollama endpoint.
+    OLLAMA_HOST: "${OLLAMA_HOST:-http://host.docker.internal:11434}"
+  extra_hosts:
+    # Ensure host.docker.internal resolves on Linux (Docker Desktop sets it automatically on Windows/Mac).
+    - "host.docker.internal:host-gateway"
   user: "0:0"
   cap_drop:
     - ALL

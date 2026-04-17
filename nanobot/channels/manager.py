@@ -90,11 +90,23 @@ class ChannelManager:
                 )
 
     async def _start_channel(self, name: str, channel: BaseChannel) -> None:
-        """Start a channel and log any exceptions."""
-        try:
-            await channel.start()
-        except Exception as e:
-            logger.error("Failed to start channel {}: {}", name, e)
+        """Start a channel, retrying on transient connection errors with exponential backoff."""
+        _RETRY_DELAYS = (5, 15, 30, 60, 120)
+        for attempt, delay in enumerate((*_RETRY_DELAYS, None), start=1):
+            try:
+                await channel.start()
+                return
+            except Exception as e:
+                if delay is None:
+                    logger.error(
+                        "Failed to start channel {} after {} attempts: {}", name, attempt, e
+                    )
+                    return
+                logger.warning(
+                    "Failed to start channel {} (attempt {}), retrying in {}s: {}",
+                    name, attempt, delay, e,
+                )
+                await asyncio.sleep(delay)
 
     async def start_all(self) -> None:
         """Start all channels and the outbound dispatcher."""
